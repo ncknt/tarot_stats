@@ -2,3 +2,6 @@ output/
 data/
 .vscode/
 png/
+node_modules/
+dist/
+semantic/
