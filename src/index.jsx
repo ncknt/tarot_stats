@@ -3,4 +3,4 @@ import * as ReactDOM from "react-dom"
 import App from './app'
 
 const root = document.getElementById('app');
-ReactDOM.render(<App/>, root);
+ReactDOM.render(<App pathname={location.pathname}/>, root);
