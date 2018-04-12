@@ -1,6 +1,5 @@
 import * as React from "react"
 import { Button } from 'semantic-ui-react'
-import RouteContext from '../utils/RouteContext'
 import NewGame from '../game/NewGame'
 import './Splash.scss'
 

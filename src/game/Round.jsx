@@ -8,6 +8,7 @@ class Round extends React.Component {
     constructor(props) {
         super(props)
         this.state = { playing: false, skip: [] };
+        this.skipper = this.skipper.bind(this);
     }
 
     skipper() {
@@ -28,7 +29,7 @@ class Round extends React.Component {
         }
         return <div>
             <Header>Nouvelle Partie</Header>
-            { skipper() }
+            { this.skipper() }
         </div>
     }
 }

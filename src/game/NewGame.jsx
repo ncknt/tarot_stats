@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {Modal, Header, Button } from 'semantic-ui-react';
+import { withRouter } from 'react-router-dom'
 import Players from './Players'
 import * as axios from 'axios'
-import RouteContext from '../utils/RouteContext'
 import { toast } from 'react-toastify';
 
 class NewGame extends React.Component {
@@ -18,7 +18,7 @@ class NewGame extends React.Component {
         this.setState({players: newPlayers});
     }
 
-    handleGo(changeRoute) {
+    handleGo() {
         let players = this.state.players.reduce((a, p) => {
             if (p) {
                 a.push(p);
@@ -30,7 +30,8 @@ class NewGame extends React.Component {
         } else {
             axios.post('/new', { players }).then(response => {
                 let data = response.data;
-                changeRoute(data.id, 'Partie de Tarot', data);
+                this.props.history.push(data.id, data);
+                // changeRoute(data.id, 'Partie de Tarot', data);
             }).catch(err => {
                 toast.error(`Ca n'a pas marche. Essaie encore.`)
             })
@@ -38,21 +39,15 @@ class NewGame extends React.Component {
     }
 
     render() {
-        return <RouteContext.Consumer>
-            {
-                ({ changeRoute }) => (
-                    <div>
-                        <Header>Qui joue?</Header>
-                        <Players onChange={this.handlePlayersChange} players={this.state.players}/>
-                        <div className="push-32">
-                            <Button onClick={this.props.onCancel}>Annuler</Button>
-                            <Button primary onClick={() => this.handleGo(changeRoute)}>C'est Parti</Button>
-                        </div>
-                    </div>
-                )
-            }
-        </RouteContext.Consumer>;
+        return <div>
+            <Header>Qui joue?</Header>
+            <Players onChange={this.handlePlayersChange} players={this.state.players}/>
+            <div className="push-32">
+                <Button onClick={() => this.props.history.goBack()}>Annuler</Button>
+                <Button primary onClick={() => this.handleGo()}>C'est Parti</Button>
+            </div>
+        </div>
     }
 }
 
-export default NewGame;
+export default withRouter(NewGame);

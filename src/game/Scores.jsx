@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Table, Button, Header } from 'semantic-ui-react'
+import { withRouter } from 'react-router-dom'
 import './Scores.scss'
 
 class Scores extends React.Component {
@@ -50,9 +51,9 @@ class Scores extends React.Component {
                     }
                 </Table.Body>
             </Table>
-            <Button circular size="massive" color='google plus' icon='plus' className="newGame" name="new" onClick={this.props.onNewRound}/>
+            <Button circular size="massive" color='google plus' icon='plus' className="newGame" onClick={() => this.props.history.push(`/${this.props.id}/new`)}/>
         </div>
     }
 }
 
-export default Scores;
+export default withRouter(Scores);
