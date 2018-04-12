@@ -1,5 +1,5 @@
 output/
-data/
+/data
 .vscode/
 png/
 node_modules/
