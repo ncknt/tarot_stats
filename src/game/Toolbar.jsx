@@ -7,7 +7,7 @@ class Toolbar extends React.PureComponent {
         return <Segment className="toolbar">
             <Grid columns={3}>
                 <Grid.Column>
-                    <Button className={this.props.active === 'scores' ? 'active' : null} name="scores" onClick={this.props.onRouteChange}>Scores</Button>
+                    <Button className={this.props.active === 'scores' ? 'active' : null} name="scores" onClick={() => this.props.onRouteChange}>Scores</Button>
                 </Grid.Column>
                 <Grid.Column>
                     <Button className={this.props.active === 'stats' ? 'active' : null} name="stats" onClick={this.props.onRouteChange}>Stats</Button>
