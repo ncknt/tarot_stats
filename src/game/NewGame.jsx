@@ -28,12 +28,11 @@ class NewGame extends React.Component {
         if (players.length < 3) {
             toast.error('Il nous faut au moins 3 joueurs!');
         } else {
-            axios.post('/new', { players }).then(response => {
+            axios.post('/new', { players, games: [] }).then(response => {
                 let data = response.data;
                 this.props.history.push(data.id, data);
-                // changeRoute(data.id, 'Partie de Tarot', data);
             }).catch(err => {
-                toast.error(`Ca n'a pas marche. Essaie encore.`)
+                toast.error(`Ca n'a pas marché. Essaie encore.`)
             })
         }
     }

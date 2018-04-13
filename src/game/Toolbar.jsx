@@ -6,9 +6,9 @@ import './Toolbar.scss'
 class Toolbar extends React.PureComponent {
     render() {
         const id = this.props.id;
-        
+
         return <Segment className="toolbar">
-            <Grid columns={3}>
+            <Grid columns={3} centered>
                 <Grid.Column>
                     <Button className={this.props.active === 'scores' ? 'active' : null} onClick={() => this.props.history.push(`/${id}/scores`)}>Scores</Button>
                 </Grid.Column>

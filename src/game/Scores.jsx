@@ -11,13 +11,13 @@ class Scores extends React.Component {
 
     render() {
         return <div className="scores">
-            <Header as="h4">{this.props.current.date.toLocaleDateString()}</Header>
+            {/* <Header as="h4">{this.props.current.date.toLocaleDateString()}</Header> */}
             <Table definition unstackable>
                 <Table.Header>
                     <Table.Row>
                         <Table.HeaderCell />
                         {
-                            this.props.current.players.map(p => (
+                            this.props.players.map(p => (
                                 <Table.HeaderCell key={p}>{p}</Table.HeaderCell>
 
                             ))
@@ -30,7 +30,7 @@ class Scores extends React.Component {
                     <Table.Row>
                         <Table.Cell>1</Table.Cell>
                         {
-                            this.props.current.players.map((p, idx) => 
+                            this.props.players.map((p, idx) => 
                                 (<Table.Cell key={idx}>+20</Table.Cell>)
                             )
                         }
