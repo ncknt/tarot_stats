@@ -3,7 +3,7 @@ import tornado.template
 from data.game import Game
 
 class HomeHandler(tornado.web.RequestHandler):
-    def get(self, arg):
+    def get(self, *args):
         # Get ID and make sure the file exists
         path_elements = [x for x in self.request.path.split("/") if x]
         if len(path_elements) == 2 and path_elements[1] == 'game':
