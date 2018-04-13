@@ -39,7 +39,8 @@ module.exports = {
                 test: /\.(ttf|eot|woff|woff2)$/,
                 loader: "file-loader",
                 options: {
-                    name: "fonts/[name].[ext]",
+                    name: "[name].[ext]",
+                    publicPath: '/fonts'
                 },
             },
             {
@@ -60,7 +61,7 @@ module.exports = {
     devServer: {
         hot: true,
         contentBase: path.resolve(__dirname, 'dist'),
-        // publicPath: 'assets',
+        publicPath: '/',
         proxy: {
             '*': {
                 target: 'http://localhost:8888',
