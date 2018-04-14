@@ -18,3 +18,11 @@ class HomeHandler(tornado.web.RequestHandler):
         else:
             loader = tornado.template.Loader("./server/pages")
             self.finish(loader.load("home.html").generate())
+
+    def put(self, *args):
+        path_elements = [x for x in self.request.path.split("/") if x]
+        game = Game(self.request.body)
+        game.id = path_elements[0]
+        game.save()
+        self.set_header('Content-Type', 'application/json')
+        self.finish(game.toJSON())
