@@ -9,13 +9,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.jsx$/,
-                enforce: "pre",
+                test: /\.(|js|jsx)$/,
+                // enforce: "pre",
                 loader: "babel-loader",
                 exclude: /node_modules/,
-                query: {
-                    presets: ["es2015", 'react']
-                }
+                // query: {
+                //     presets: ["env", 'react']
+                // }
             },
             {
                 test: /\.scss$/,
