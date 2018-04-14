@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { Table, Button, Header } from 'semantic-ui-react'
+import { Table, Button, Header, Container, Icon } from 'semantic-ui-react'
 import { withRouter } from 'react-router-dom'
+import { pointsNeeded } from '../utils/rules'
 import './Scores.scss'
 
 class Scores extends React.Component {
@@ -10,6 +11,24 @@ class Scores extends React.Component {
     }
 
     render() {
+        const rounds = this.props.current.rounds;
+        const lastRound = rounds.length && rounds[rounds.length -1] || null;
+        const players = this.props.players;
+        const cellClass = (player, round) => {
+            if (player === round.bidder) {
+                if (round.scores[player] > 0) {
+                    return 'bidder-win';
+                }
+                return 'bidder-loss';
+
+            } else if (player === round.sidekick) {
+                if (round.scores[player] > 0) {
+                    return 'sidekick-win';
+                }
+                return 'sidekick-loss';
+            }
+        }
+
         return <div className="scores">
             {/* <Header as="h4">{this.props.current.date.toLocaleDateString()}</Header> */}
             <Table definition unstackable>
@@ -17,7 +36,7 @@ class Scores extends React.Component {
                     <Table.Row>
                         <Table.HeaderCell />
                         {
-                            this.props.players.map(p => (
+                            players.map(p => (
                                 <Table.HeaderCell key={p}>{p}</Table.HeaderCell>
 
                             ))
@@ -27,30 +46,32 @@ class Scores extends React.Component {
                 </Table.Header>
 
                 <Table.Body>
-                    <Table.Row>
-                        <Table.Cell>1</Table.Cell>
-                        {
-                            this.props.players.map((p, idx) => 
-                                (<Table.Cell key={idx}>+20</Table.Cell>)
-                            )
-                        }
-                        <Table.Cell>G (+20)</Table.Cell>
-                    </Table.Row>
                     {
-                        this.props.current.rounds.map((round, idx) => (
+                        rounds.map((round, idx) => (
                             <Table.Row key={idx}>
                                 <Table.Cell>{idx + 1}</Table.Cell>
                                 {
-                                    round.map((pR, idx) => {
-                                        <Table.Cell key={idx}>{pR}</Table.Cell>
-                                    })
+                                    players.map((p, j) => (<Table.Cell key={j} className={cellClass(p, round)}>{round.scores[p]}</Table.Cell>))
                                 }
-                                <Table.Cell>{round.contract}</Table.Cell>
+                                <Table.Cell>{round.contract} {round.points - pointsNeeded(round.oudlers)}</Table.Cell>
                             </Table.Row>
                         ))
                     }
+                    {
+                        lastRound &&
+                        <Table.Row>
+                            <Table.Cell/>
+                            {
+                                players.map((p, j) => (<Table.Cell key={j}>{lastRound.totals[p]}</Table.Cell>))
+                            }
+                        </Table.Row>
+                    }
                 </Table.Body>
             </Table>
+            {
+                !lastRound && 
+                <Container textAlign="center"><Header>Pas encore de partie!</Header></Container>
+            }
             <Button circular size="massive" color='google plus' icon='plus' className="newGame" onClick={() => this.props.history.push(`/${this.props.id}/new`)}/>
         </div>
     }

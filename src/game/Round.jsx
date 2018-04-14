@@ -1,8 +1,9 @@
 import * as React from 'react'
 import update from 'react-addons-update';
-import { Header, Dropdown, Button, Grid, Rating, Container } from 'semantic-ui-react'
+import { Header, Dropdown, Button, Grid, Rating, Container, Menu, Input } from 'semantic-ui-react'
 import { CONTRACTS, CHIENS, SUITS } from '../utils/constants'
 import RoundResult from './RoundResult'
+import { basePoints, petitAuBout, pointsNeeded, computeScores } from '../utils/rules'
 
 import './Round.scss'
 
@@ -12,6 +13,7 @@ class Round extends React.Component {
         super(props)
         this.state = { playing: false, skip: [] };
         this.skipper = this.skipper.bind(this);
+        this.finish = this.finish.bind(this);
     }
 
     componentWillMount() {
@@ -48,23 +50,8 @@ class Round extends React.Component {
      * Who's bidding? Or show who the bidder is
      */
     bidder() {
-        if (this.state.players) {
-            if (this.state.bidder) {
-                return <Grid columns={2} className="no-space">
-                    <Grid.Column><strong>{this.state.bidder}</strong> a pris.</Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button icon="undo" basic onClick={() => this.setState({bidder: null})}/>
-                    </Grid.Column>
-                </Grid>
-            }
-            const onTap = (player) => this.setState({ bidder: player })
-            return <div>
-                <Header>Qui a pris?</Header>
-                <Grid columns={4} stackable>
-                    {this.state.players.map((player, index) => (<Grid.Column key={index}><Button basic color="purple" onClick={() => onTap(player)}>{player}</Button></Grid.Column>))}
-                </Grid>
-            </div>
-        }
+        const bidderOptions = this.state.players.map(p => ({value: p, text: p}));
+        return <Dropdown item disabled={this.state.playing} placeholder="Preneur" options={bidderOptions} value={this.state.bidder} onChange={(e, data) => this.setState({ bidder: data.value })}/>
     }
 
     /**
@@ -72,25 +59,21 @@ class Round extends React.Component {
      */
     contract() {
         if (this.state.bidder) {
-            if (this.state.contract) {
-                let lab = CONTRACTS.find(({val}) => val === this.state.contract).lab;
-                return <Grid columns={2} className="no-space">
-                    <Grid.Column>Le contrat est une <b>{lab}.</b></Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button icon="undo" basic onClick={() => this.setState({ contract: null })} />
-                    </Grid.Column>
-                </Grid>
-            }
+            const contractOptions = CONTRACTS.map(({val, lab}) => ({text: lab, value: val}));
+            return <Dropdown item disabled={this.state.playing} placeholder="Contrat" options={contractOptions} onChange={(e, data) => this.setState({ contract: data.value })}/>
+        }
+        return <div></div>
+    }
 
-            const onTap = (contract) => this.setState({contract: contract});
-            return <div>
-                <Header>Que prend {this.state.bidder}?</Header>
-                <Grid columns={4} stackable>
-                {
-                    CONTRACTS.map(({ lab, val }, index) => (<Grid.Column key={index}><Button basic color="purple" onClick={() => onTap(val)}>{lab}</Button></Grid.Column>))
-                }
-                </Grid>
-            </div>
+    suitCalled() {
+        if (this.state.players.length === 5) {
+            if (!this.state.contract) {
+                return <div></div>;
+            }
+            const suitString = (suitCode) => suitCode.replace(/\\u(\w\w\w\w)/g, (a, b) => String.fromCharCode(parseInt(b, 16)));
+            const suits = Object.keys(SUITS);
+            const suitOptions = suits.map(suitValue => ({ text: `${SUITS[suitValue].lab} (${suitString(SUITS[suitValue].code)})`, value: suitValue }));
+            return <Dropdown disabled={this.state.playing} item placeholder="Appel" options={suitOptions} onChange={(e, data) => this.setState({ suitCalled: data.value })} />
         }
     }
 
@@ -98,55 +81,58 @@ class Round extends React.Component {
      * How good is the "chien"?
      */
     leDog() {
-        if (this.state.contract && (this.state.players.length !== 5 || this.state.suitCalled)) {
-            if (this.state.chien) {
-                return <Grid columns={2} className="no-space">
-                    <Grid.Column>
-                        Le chien: <Rating disabled defaultRating={this.state.chien} maxRating={5} />
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button icon="undo" basic onClick={() => this.setState({ chien: null })} />
-                    </Grid.Column>
-                </Grid>
-            }
+        // Ask only if not playing, it's shown and the suit has been called if applicable
+        if (!this.state.playing && this.state.contract && 
+            (this.state.contract !== 'GS' && this.state.contract !== 'GC') && 
+                (this.state.players.length !== 5 || this.state.suitCalled)) {
             const onRate = (e, { rating, maxRating }) => this.setState({ chien: rating });
-            return <div>
+            return <div className="push-32">
                 <Header>Comment est le chien?</Header>
                 <Rating maxRating={5} onRate={onRate} />
             </div>
         }
     }
 
-    suitCalled() {
-        if (this.state.contract && this.state.players.length === 5) {
-            const suitString = (suitCode) => suitCode.replace(/\\u(\w\w\w\w)/g, (a, b) => String.fromCharCode(parseInt(b, 16)));
-
-            if (this.state.suitCalled) {
-                let code = SUITS[this.state.suitCalled].code;
-                return <Grid columns={2} className="no-space">
-                    <Grid.Column>
-                        {suitString(code)} appelé.
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button icon="undo" basic onClick={() => this.setState({ suitCalled: null })} />
-                    </Grid.Column>
-                </Grid>
-            }
-            const onTap = (suit) => this.setState({ suitCalled: suit });
-            const suits = Object.keys(SUITS);
+    /**
+     * Any annonces?
+     */
+    annonces() {
+        if (!this.state.playing && this.state.contract && (this.state.players.length !== 5 || this.state.suitCalled)) {
             return <div>
-                <Header>Quel roi est appelé?</Header>
-                <Grid columns={4}>
-                    <Grid.Column><Button size="big" basic color="black" onClick={() => onTap('P')}>{suitString(SUITS.P.code)}</Button></Grid.Column>
-                    <Grid.Column><Button size="big" basic color="red" onClick={() => onTap('C')}>{suitString(SUITS.C.code)}</Button></Grid.Column>
-                    <Grid.Column><Button size="big" basic color="red" onClick={() => onTap('R')}>{suitString(SUITS.R.code)}</Button></Grid.Column>
-                    <Grid.Column><Button size="big" basic color="black" onClick={() => onTap('T')}>{suitString(SUITS.T.code)}</Button></Grid.Column>
-                    {/* {
-                        suits.map((suit, index) => (<Grid.Column key={index}><Button size="big" basic color="purple" onClick={() => onTap(suit)}>{suitString(SUITS[suit].code)}</Button></Grid.Column>))
-                    } */}
+                <Header>Des annonces?</Header>
+                <Grid columns={2}>
+                    <Grid.Column>
+                        <div className="ui toggle checkbox">
+                            <input type="checkbox" checked={this.state.chelem} onChange={() => this.setState({ chelem: true })} />
+                            <label>Grand Chelem</label>
+                        </div>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <div className="ui toggle checkbox">
+                            <input type="checkbox" checked={this.state.poignee} onChange={() => this.setState({ poignee: true })} />
+                            <label>Poignee</label>
+                        </div>
+                    </Grid.Column>
                 </Grid>
-            </div>            
+            </div>
+        }
+    }
 
+    /**
+     * Any annonces?
+     */
+    specialCase() {
+        if (!this.state.playing && this.state.contract && (this.state.players.length !== 5 || this.state.suitCalled)) {
+            return <div>
+                <Grid columns={2}>
+                    <Grid.Column>
+                        <div className="ui toggle checkbox">
+                            <input type="checkbox" checked={this.state.petitAuBout} onChange={() => this.setState({petitAuBout: true})} />
+                            <label>Petit au bout</label>
+                        </div>
+                    </Grid.Column>
+                </Grid>
+            </div>
         }
     }
 
@@ -154,7 +140,7 @@ class Round extends React.Component {
      * Who is called?
      */
     sidekick() {
-        if (this.state.contract && this.state.players.length === 5 && this.state.chien) {
+        if (this.state.playing && this.state.players.length === 5) {
             if (this.state.sidekick) {
                 return <Grid columns={2} className="no-space">
                     <Grid.Column>
@@ -167,7 +153,7 @@ class Round extends React.Component {
             }
             const onTap = (player) => this.setState({ sidekick: player })
             return <div>
-                <Header>Qui est appelé?</Header>
+                <Header>Qui a été appelé?</Header>
                 <Grid columns={4} stackable>
                     {this.state.players.map((player, index) => (<Grid.Column key={index}><Button basic color="purple" onClick={() => onTap(player)}>{player}</Button></Grid.Column>))}
                 </Grid>
@@ -175,40 +161,94 @@ class Round extends React.Component {
         }
     }
 
-    summary() {
-        let contract = CONTRACTS.find(({ val }) => val === this.state.contract).lab;
-        let suit = SUITS[this.state.suitCalled];
-        return <Header>
-            {this.state.bidder} a pris une {contract}
-            {this.state.suitCalled && 
-            <span> et a appelé {suit.lab}</span>}.
-        </Header>
+    result() {
+        if (this.state.players.length !== 5 || this.state.sidekick) {
+            const { contract, points, petit, twentyOne, excuse, grandChelem } = this.state;
+            let oudlers = 0;
+            if (petit) oudlers++;
+            if (excuse) oudlers++;
+            if (twentyOne) oudlers++;
+            let base = basePoints(contract, points, oudlers, grandChelem);
+
+            return <div>
+                <RoundResult onResult={(attackPoints) => this.setState({ points: attackPoints })} points={points || pointsNeeded(2)} />
+                <Grid columns={3} className="push-32">
+                    <Grid.Column>
+                        <Button basic toggle active={twentyOne} onClick={() => this.setState({ twentyOne: !twentyOne })}>21</Button>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <Button basic toggle active={excuse} onClick={() => this.setState({ excuse: !excuse })}>Excuse</Button>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <Button basic toggle active={petit} onClick={() => this.setState({ petit: !petit })}>Petit</Button>
+                    </Grid.Column>
+                </Grid>
+                {!!base && 
+                    <div className="push-32">
+                        Points de base: <span className={`ui basic label ${base > 0 ? 'green' : 'red'}`}>{base}</span>
+                    </div>
+                }
+            </div>
+        }
     }
 
-    result() {
-        return <RoundResult />
+    /**
+     * Count the points and add to the overall game
+     */
+    finish() {
+        const { contract, bidder, sidekick, players, points, twentyOne, petit, excuse, grandChelem } = this.state;
+        let oudlers = 0;
+        if (petit) oudlers++;
+        if (excuse) oudlers++;
+        if (twentyOne) oudlers++;
+
+        let base = basePoints(contract, points, oudlers, grandChelem);
+        let scores = computeScores(players, base, bidder, sidekick);
+        if (this.state.petitAuBout) {
+            let pb = petitAuBout(contract, this.state.petitAuBout);
+            let pbScores = computeScores(players, pb, bidder, sidekick);
+            // Add the petit au bout scores
+            players.forEach(p => {
+                scores[p] += pbScores[p]
+            });
+        }
+        let round = { ...this.state, scores, oudlers, duration: 0};
+        delete round.playing;
+        delete round.skip;
+        delete round.players;
+        this.props.onRoundFinish(round);
     }
 
     render() {
-        if (this.state.playing) {
-            return <div>
-                {this.summary()}
-                {this.sidekick()}
-                {this.result()}
-            </div>
-        }
-        return <div>
+        return (<div>
             <Header>Nouvelle Partie</Header>
-            <hr/>
-            {this.skipper()}
-            {this.bidder()}
-            {this.contract()}
-            {this.suitCalled()}
-            {this.leDog()}
-            {this.state.chien && this.state.bidder && this.state.contract && 
-                <Container textAlign="center"><Button basic size="big" onClick={() => this.setState({playing: true})}>Jouer!</Button></Container>
+            {
+                this.state.players &&
+                <Menu size="large" borderless fluid widths={this.state.players.length === 5 ? 3 : 2}>
+                    {this.bidder()}
+                    {this.contract()}
+                    {this.suitCalled()}
+                </Menu>
             }
-        </div>
+            {
+                this.state.playing &&
+                <div>
+                    {this.sidekick()}
+                    {this.specialCase()}
+                    {this.result()}
+                </div>
+            }
+            { !this.state.players && this.skipper() }
+            { this.annonces() }
+            { this.leDog() }
+            {!this.state.playing && this.state.bidder && this.state.contract &&
+                (this.state.players.length !== 5 || this.state.suitCalled) &&
+                <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.setState({ playing: true })}>Jouer!</Button></Container>
+            }
+            { this.state.playing && (!this.state.suitCalled || this.state.sidekick) &&
+                <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
+            }
+        </div>);
     }
 }
 

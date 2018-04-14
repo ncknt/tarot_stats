@@ -1,17 +1,16 @@
 import * as React from 'react'
 import { Input, Button } from 'semantic-ui-react'
 
-class RoundResult extends React.Component {
+class RoundResult extends React.PureComponent {
 
     constructor(props) {
         super(props);
-        this.state = { attack: 46, defense: 45 }
         this.addAttack = this.addAttack.bind(this)
     }
 
     addAttack(pts) {
-        let attack = Math.min(Math.max(0, this.state.attack + pts), 91);
-        this.setState({attack, defense: 91 - attack});
+        let points = Math.min(Math.max(0, this.props.points + pts), 91);
+        this.props.onResult(points);
     }
 
     render() {
@@ -19,7 +18,7 @@ class RoundResult extends React.Component {
             <div>
                 Points en attaque:
                 <div>
-                    <Input labelPosition='right' type='number' placeholder='Points' value={this.state.attack}>
+                    <Input labelPosition='right' type='number' placeholder='Points' value={this.props.points}>
                         <Button basic onClick={() => this.addAttack(-1)}>-</Button>
                         <input />
                         <Button basic onClick={() => this.addAttack(1)}>+</Button>
@@ -27,7 +26,7 @@ class RoundResult extends React.Component {
                 </div>
                 Points en defense:
                 <div>
-                    <Input labelPosition='right' type='number' placeholder='Points' value={this.state.defense}>
+                    <Input labelPosition='right' type='number' placeholder='Points' value={91 - this.props.points}>
                         <Button basic onClick={() => this.addAttack(1)}>-</Button>
                         <input />
                         <Button basic onClick={() => this.addAttack(-1)}>+</Button>

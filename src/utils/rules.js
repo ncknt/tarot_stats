@@ -61,4 +61,31 @@ export function basePoints(contract, attackPoints, oudlers, grandChelem) {
 export function petitAuBout(contract, attack) {
     let multiplier = contractMultiplier(contract);
     return (attack ? 1: -1) * 10 * multiplier 
-} 
+}
+
+export function computeScores(players, basePoints, bidder, sidekick) {
+    return players.reduce((h, p) => {
+        if (p === bidder) {
+            switch(players.length) {
+                case 5:
+                    if (sidekick === p) {
+                        h[p] = basePoints * 4
+                    } else {
+                        h[p] = basePoints * 2
+                    }
+                    break;
+                case 4:
+                    h[p] = basePoints * 3;
+                    break;
+                case 3:
+                    h[p] = basePoints * 2;
+                    break;
+            }
+        } else if (p === sidekick) {
+            h[p] = basePoints;
+        } else {
+            h[p] = -basePoints;
+        }
+        return h;
+    }, {})
+}
