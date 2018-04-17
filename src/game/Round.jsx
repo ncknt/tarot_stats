@@ -4,6 +4,7 @@ import { Header, Dropdown, Button, Grid, Rating, Container, Menu, Input } from '
 import { CONTRACTS, CHIENS, SUITS } from '../utils/constants'
 import RoundResult from './RoundResult'
 import { basePoints, petitAuBout, pointsNeeded, computeScores } from '../utils/rules'
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import './Round.scss'
 
@@ -14,6 +15,7 @@ class Round extends React.Component {
         this.state = { playing: false, skip: [] };
         this.skipper = this.skipper.bind(this);
         this.finish = this.finish.bind(this);
+        this.play = this.play.bind(this)
     }
 
     componentWillMount() {
@@ -50,8 +52,16 @@ class Round extends React.Component {
      * Who's bidding? Or show who the bidder is
      */
     bidder() {
-        const bidderOptions = this.state.players.map(p => ({value: p, text: p}));
-        return <Dropdown item disabled={this.state.playing} placeholder="Preneur" options={bidderOptions} value={this.state.bidder} onChange={(e, data) => this.setState({ bidder: data.value })}/>
+        return <Grid columns={12} stackable>
+            <Grid.Column width={4}><strong>Preneur</strong></Grid.Column>
+            <Grid.Column width={8}>
+                <Button.Group compact>
+                    {
+                        this.state.players.map((p, idx) => (<Button key={idx} basic={ p !== this.state.bidder } primary onClick={() => this.setState({ bidder: p })}>{p}</Button>))
+                    }
+                </Button.Group>
+            </Grid.Column>
+        </Grid>
     }
 
     /**
@@ -59,8 +69,16 @@ class Round extends React.Component {
      */
     contract() {
         if (this.state.bidder) {
-            const contractOptions = CONTRACTS.map(({val, lab}) => ({text: lab, value: val}));
-            return <Dropdown item disabled={this.state.playing} placeholder="Contrat" options={contractOptions} onChange={(e, data) => this.setState({ contract: data.value })}/>
+            return <Grid columns={12} stackable>
+                <Grid.Column width={4}><strong>Contrat</strong></Grid.Column>
+                <Grid.Column width={8}>
+                    <Button.Group compact>
+                        {
+                            CONTRACTS.map(({val, lab}, idx) => (<Button key={idx} basic={val !== this.state.contract} primary onClick={() => this.setState({ contract: val })}>{lab}</Button>))
+                        }
+                    </Button.Group>
+                </Grid.Column>
+            </Grid>
         }
         return <div></div>
     }
@@ -70,11 +88,23 @@ class Round extends React.Component {
             if (!this.state.contract) {
                 return <div></div>;
             }
-            const suitString = (suitCode) => suitCode.replace(/\\u(\w\w\w\w)/g, (a, b) => String.fromCharCode(parseInt(b, 16)));
             const suits = Object.keys(SUITS);
-            const suitOptions = suits.map(suitValue => ({ text: `${SUITS[suitValue].lab} (${suitString(SUITS[suitValue].code)})`, value: suitValue }));
-            return <Dropdown disabled={this.state.playing} item placeholder="Appel" options={suitOptions} onChange={(e, data) => this.setState({ suitCalled: data.value })} />
+            return <Grid columns={12} stackable>
+                <Grid.Column width={4}><strong>Couleur appelee</strong></Grid.Column>
+                <Grid.Column width={8}>
+                    <Button.Group compact>
+                        {
+                            suits.map((suitValue, idx) => (<Button key={idx} basic={suitValue !== this.state.suitCalled} primary onClick={() => this.setState({ suitCalled: suitValue })}>{SUITS[suitValue].lab} ({SUITS[suitValue].code})</Button>))
+                        }
+                    </Button.Group>
+                </Grid.Column>
+            </Grid>
         }
+    }
+
+    withChien() {
+        return this.state.contract &&
+            (this.state.contract !== 'GS' && this.state.contract !== 'GC');
     }
 
     /**
@@ -82,8 +112,7 @@ class Round extends React.Component {
      */
     leDog() {
         // Ask only if not playing, it's shown and the suit has been called if applicable
-        if (!this.state.playing && this.state.contract && 
-            (this.state.contract !== 'GS' && this.state.contract !== 'GC') && 
+        if (!this.state.playing && this.withChien() && 
                 (this.state.players.length !== 5 || this.state.suitCalled)) {
             const onRate = (e, { rating, maxRating }) => this.setState({ chien: rating });
             return <div className="push-32">
@@ -97,19 +126,20 @@ class Round extends React.Component {
      * Any annonces?
      */
     annonces() {
-        if (!this.state.playing && this.state.contract && (this.state.players.length !== 5 || this.state.suitCalled)) {
-            return <div>
+        if (this.state.contract && (this.state.chien || !this.withChien()) &&
+            (this.state.players.length !== 5 || this.state.suitCalled)) {
+            return <div className="push-32">
                 <Header>Des annonces?</Header>
                 <Grid columns={2}>
                     <Grid.Column>
                         <div className="ui toggle checkbox">
-                            <input type="checkbox" checked={this.state.chelem} onChange={() => this.setState({ chelem: true })} />
+                            <input type="checkbox" checked={this.state.grandChelem ? 'true' : ''} onChange={() => this.setState({ grandChelem: !this.state.grandChelem })} />
                             <label>Grand Chelem</label>
                         </div>
                     </Grid.Column>
                     <Grid.Column>
                         <div className="ui toggle checkbox">
-                            <input type="checkbox" checked={this.state.poignee} onChange={() => this.setState({ poignee: true })} />
+                            <input type="checkbox" checked={this.state.poignee ? 'true': ''} onChange={() => this.setState({ poignee: !this.state.poignee })} />
                             <label>Poignee</label>
                         </div>
                     </Grid.Column>
@@ -122,70 +152,61 @@ class Round extends React.Component {
      * Any annonces?
      */
     specialCase() {
-        if (!this.state.playing && this.state.contract && (this.state.players.length !== 5 || this.state.suitCalled)) {
-            return <div>
-                <Grid columns={2}>
-                    <Grid.Column>
-                        <div className="ui toggle checkbox">
-                            <input type="checkbox" checked={this.state.petitAuBout} onChange={() => this.setState({petitAuBout: true})} />
-                            <label>Petit au bout</label>
-                        </div>
-                    </Grid.Column>
-                </Grid>
-            </div>
-        }
+        return <div className="push-32">
+            <Grid columns={2}>
+                <Grid.Column>
+                    <div className="ui toggle checkbox">
+                        <input type="checkbox" checked={this.state.petitAuBout ? 'true': ''} onChange={() => this.setState({petitAuBout: !this.state.petitAuBout})} />
+                        <label>Petit au bout</label>
+                    </div>
+                </Grid.Column>
+            </Grid>
+        </div>
     }
 
     /**
      * Who is called?
      */
     sidekick() {
-        if (this.state.playing && this.state.players.length === 5) {
-            if (this.state.sidekick) {
-                return <Grid columns={2} className="no-space">
-                    <Grid.Column>
-                        {this.state.sidekick} est appelé.
-                    </Grid.Column>
-                    <Grid.Column textAlign="right">
-                        <Button icon="undo" basic onClick={() => this.setState({ sidekick: null })} />
-                    </Grid.Column>
-                </Grid>
-            }
-            const onTap = (player) => this.setState({ sidekick: player })
-            return <div>
+        if (this.state.players.length === 5) {
+            return <div className="push-32">
                 <Header>Qui a été appelé?</Header>
-                <Grid columns={4} stackable>
-                    {this.state.players.map((player, index) => (<Grid.Column key={index}><Button basic color="purple" onClick={() => onTap(player)}>{player}</Button></Grid.Column>))}
-                </Grid>
+                <Button.Group compact>
+                    {
+                        this.state.players.map((p, idx) => (<Button key={idx} basic={p !== this.state.sidekick} positive onClick={() => this.setState({ sidekick: p })}>{p}</Button>))
+                    }
+                </Button.Group>
             </div>
         }
     }
 
     result() {
         if (this.state.players.length !== 5 || this.state.sidekick) {
-            const { contract, points, petit, twentyOne, excuse, grandChelem } = this.state;
+            const { contract, petit, twentyOne, excuse, grandChelem } = this.state;
+            var points = this.state.points;
             let oudlers = 0;
             if (petit) oudlers++;
             if (excuse) oudlers++;
             if (twentyOne) oudlers++;
             let base = basePoints(contract, points, oudlers, grandChelem);
+            if (typeof points !== 'number') {
+                points = pointsNeeded(2);
+            }
 
-            return <div>
-                <Grid columns={3} className="push-32">
-                    <Grid.Column>
-                        <Button basic toggle active={twentyOne} onClick={() => this.setState({ twentyOne: !twentyOne })}>21</Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button basic toggle active={excuse} onClick={() => this.setState({ excuse: !excuse })}>Excuse</Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button basic toggle active={petit} onClick={() => this.setState({ petit: !petit })}>Petit</Button>
-                    </Grid.Column>
-                </Grid>
-                <RoundResult className="push-32" onResult={(attackPoints) => this.setState({ points: attackPoints })} points={points || pointsNeeded(2)} />
+            return <div className="push-32">
+                <Header>Les bouts en attaque ({oudlers})</Header>
+                <div>
+                    <Button.Group>
+                        <Button basic={!twentyOne} positive onClick={() => this.setState({ twentyOne: !twentyOne })}>21</Button>
+                        <Button basic={!excuse} positive onClick={() => this.setState({ excuse: !excuse })}>Excuse</Button>
+                        <Button basic={!petit} positive onClick={() => this.setState({ petit: !petit })}>Petit</Button>
+                    </Button.Group>
+                </div>
+                {this.specialCase()}
+                <RoundResult onResult={(attackPoints) => this.setState({ points: attackPoints })} points={points} />
                 {!!base && 
                     <div className="push-32">
-                        Points de base: <span className={`ui basic label ${base > 0 ? 'green' : 'red'}`}>{base}</span>
+                        <span className={`ui label ${base > 0 ? 'green' : 'red'}`}>Points de base: {base}</span>
                     </div>
                 }
             </div>
@@ -219,36 +240,60 @@ class Round extends React.Component {
         this.props.onRoundFinish(round);
     }
 
+    summary() {
+        const contract = CONTRACTS.find(({val}) => val === this.state.contract).lab;
+        return <div className="push-16">
+        {this.state.bidder} a pris une {contract}
+        {this.state.suitCalled && <span> et a appele {SUITS[this.state.suitCalled].lab}</span>}.
+        {this.state.grandChelem && <strong> Grand chelem annonce!</strong> }
+        </div>
+    }
+
+    play() {
+        this.setState({playing: true})
+    }
+
     render() {
-        return (<div>
-            <Header>Nouvelle Partie</Header>
-            {
-                this.state.players &&
-                <Menu size="large" borderless fluid widths={this.state.players.length === 5 ? 3 : 2}>
+        if (!this.state.players) {
+            return <Container>
+                <Header>Nouvelle Partie</Header>
+                { this.skipper() }
+            </Container>
+        }
+        return (<Container>
+            <ReactCSSTransitionGroup
+                transitionName="screen"
+                transitionEnterTimeout={250}
+                transitionLeaveTimeout={250}
+            >
+                {!this.state.playing &&
+                    <div>
+                    <Header>Nouvelle Partie</Header>
                     {this.bidder()}
                     {this.contract()}
                     {this.suitCalled()}
-                </Menu>
-            }
-            {
-                this.state.playing &&
-                <div>
-                    {this.sidekick()}
-                    {this.specialCase()}
-                    {this.result()}
-                </div>
-            }
-            { !this.state.players && this.skipper() }
-            { this.annonces() }
-            { this.leDog() }
-            {!this.state.playing && this.state.bidder && this.state.contract &&
-                (this.state.players.length !== 5 || this.state.suitCalled) &&
-                <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.setState({ playing: true })}>Jouer!</Button></Container>
-            }
-            { this.state.playing && (!this.state.suitCalled || this.state.sidekick) &&
-                <Container className="push-32" textAlign="center"><Button primary disabled={this.props.saving} loading={this.props.saving} basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
-            }
-        </div>);
+                    {this.leDog()}
+                    {this.annonces()}
+                    { this.state.bidder &&
+                        (this.state.players.length !== 5 || this.state.suitCalled) &&
+                        (this.state.chien || !this.withChien()) &&
+                        <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.setState({ playing: true })}>Jouer!</Button></Container>
+                    }
+                    </div>
+                }
+                {this.state.playing &&
+                    <div>
+                        <Header>Partie en cours</Header>
+                        {this.summary()}
+                        {this.sidekick()}
+                        {this.result()}
+                        {(!this.state.suitCalled || this.state.sidekick && typeof this.state.points === 'number') &&
+                            <Container className="push-32" textAlign="center"><Button primary disabled={this.props.saving} loading={this.props.saving} basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
+                        }
+                    </div>
+                }
+            </ReactCSSTransitionGroup>
+        </Container>);
     }
 }
 

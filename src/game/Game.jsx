@@ -5,6 +5,7 @@ import * as axios from 'axios'
 import { toast } from 'react-toastify';
 import Scores from './Scores'
 import Round from './Round'
+import RoundView from './RoundView'
 import { withRouter } from 'react-router-dom'
 import persistence from '../utils/persistence'
 import update from 'react-addons-update';
@@ -18,6 +19,7 @@ class Game extends React.Component {
         this.state = { loading: true };
         this.roundFinished = this.roundFinished.bind(this);
         this.onGameUpdate = this.onGameUpdate.bind(this);
+        this.deleteRound = this.deleteRound.bind(this);
     }
 
     async componentDidMount() {
@@ -41,7 +43,7 @@ class Game extends React.Component {
             this.startGame(championship, cDoc.id, game, gameDoc.id);
         } else {
             // Start new game if none so far, marked as ended or more than a day old
-            game = { startedAt: new Date().toISOString(), rounds: [], totals: [] }
+            game = { startedAt: new Date().toISOString(), rounds: [], totals: [], championship: cDoc.id }
             this.saveCurrentGame(game, championship, cDoc.id);
         }
     }
@@ -76,40 +78,49 @@ class Game extends React.Component {
         }
     }
 
-    async roundFinished(round) {
+    roundFinished(round) {
         this.setState({saving: true});
-        // Compute the new totals
         const game = this.state.game;
-        let scores = round.scores;
-
-        let newTotals = this.state.championship.players.reduce((h, p) => {
-            h[p] = (game.totals[p] || 0) + (scores[p] || 0);
-            return h;
-        }, {});
-
-        // Save the round
         let rounds = game.rounds.slice(0);
         rounds.push(round);
+        const newGame = { ...game, rounds };
+        return this.updateGameAndTotals(newGame);
+    }
 
-        await persistence().doc(`games/${this.state.gId}`).set({
-            rounds,
-            totals: newTotals
-        }, { merge: true });
-
-        // Update the state
-        const newGame = {
-            ...game,
-            totals: newTotals,
-            rounds
-        }
-
+    async updateGameAndTotals(game) {
         try {
-            this.setState({game: newGame, saving: false});
+            // Recompute totals
+            const newTotals = this.state.championship.players.reduce((h, p) => {
+                h[p] = game.rounds.reduce((total, round) => (round.scores[p] || 0) + total, 0);
+                return h;
+            }, {});
+            game.totals = newTotals
+
+            // Save the game
+            await persistence().doc(`games/${this.state.gId}`).set({
+                rounds: game.rounds,
+                totals: game.totals
+            }, { merge: true });
+
+            // Set the game state and navigate to scores
+            this.setState({ game, saving: false });
             this.props.history.push(`/${this.state.cId}/scores`);
+
         } catch (err) {
             console.log(err);
-            toast.error('Pas pu sauver. Essaie encore.')
+            toast.error('Pas pu sauver. Essayez encore.')
         }
+    }
+
+    deleteRound(roundIndex) {
+        this.setState({ saving: true });
+        if (!this.state.saving) {
+            // Compute the new totals
+            const game = this.state.game;
+            const rounds = game.rounds.splice(roundIndex, 1);
+            const newGame = { ...game, rounds };
+            return this.updateGameAndTotals(newGame);
+        }        
     }
 
     render() {
@@ -127,6 +138,9 @@ class Game extends React.Component {
                 </Route>
                 <Route exact path={`/${id}/scores`}>
                     <Scores id={id} current={this.state.game} players={this.state.championship.players} />
+                </Route>
+                <Route exact path={`/${id}/rounds/:rId`}>
+                    <RoundView game={this.state.game} players={this.state.championship.players} onRoundDelete={this.deleteRound} saving={this.state.saving} />
                 </Route>
                 <Route exact path={`/${id}`}>
                     <Redirect to={`/${id}/scores`} />

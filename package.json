@@ -21,6 +21,7 @@
     "axios": "^0.18.0",
     "firebase": "^4.12.1",
     "react": "^16.3.1",
+    "react-addons-css-transition-group": "^15.6.2",
     "react-addons-update": "^15.6.2",
     "react-dom": "^16.3.1",
     "react-router": "^4.2.0",

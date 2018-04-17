@@ -13,15 +13,15 @@ export const CHIENS = [
 
 export const SUITS = {
     P: {
-        lab: 'Pic', code: '\u2660'
+        lab: 'Pic', code: String.fromCharCode(9824), //'\u2660'
     },
     C: {
-        lab: 'Coeur', code: '\u2665'
+        lab: 'Coeur', code: String.fromCharCode(9829), // '\u2665'
     },
     R: {
-        lab: 'Carreau', code: '\u2666'
+        lab: 'Carreau', code: String.fromCharCode(9830), //'\u2666'
     },
     T: {
-        lab: 'Trèfle', code: '\u2667'
+        lab: 'Trèfle', code: String.fromCharCode(9831) //'\u2667'
     }
 }

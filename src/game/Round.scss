@@ -1,3 +1,17 @@
 .ui.grid+.grid.no-space {
     margin-top: 0;
 }
+.screen-enter {
+  transform: translate(100%);
+}
+.screen-enter.screen-enter-active {
+  transform: translate(0%);
+  transition: transform 250ms ease-in-out;
+}
+.screen-leave {
+  transform: translate(0%);
+}
+.screen-leave.screen-leave-active {
+  transform: translate(-100%);
+  transition: transform 250ms ease-in-out;
+}

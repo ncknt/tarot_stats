@@ -6,6 +6,8 @@ class RoundResult extends React.PureComponent {
     constructor(props) {
         super(props);
         this.addAttack = this.addAttack.bind(this)
+        this.handleAttack = this.handleAttack.bind(this)
+        this.handleDefense = this.handleDefense.bind(this)
     }
 
     addAttack(pts) {
@@ -13,22 +15,32 @@ class RoundResult extends React.PureComponent {
         this.props.onResult(points);
     }
 
+    handleAttack(event) {
+        let val = Math.min(Math.max(0, parseInt(event.target.value, 10)), 91);
+        this.props.onResult(val);
+    }
+
+    handleDefense(event) {
+        let val = Math.min(Math.max(0, parseInt(event.target.value, 10)), 91);
+        this.props.onResult(val);
+    }
+
     render() {
         return (
-            <div>
+            <div className="push-32">
                 Points en attaque:
                 <div>
-                    <Input labelPosition='right' type='number' placeholder='Points' value={this.props.points}>
+                    <Input labelPosition='right' type='number' placeholder='Points'>
                         <Button basic onClick={() => this.addAttack(-1)}>-</Button>
-                        <input />
+                        <input onChange={this.handleAttack} value={this.props.points} min={0} max={91}/>
                         <Button basic onClick={() => this.addAttack(1)}>+</Button>
                     </Input>
                 </div>
                 Points en defense:
                 <div>
-                    <Input labelPosition='right' type='number' placeholder='Points' value={91 - this.props.points}>
+                    <Input labelPosition='right' type='number' placeholder='Points'>
                         <Button basic onClick={() => this.addAttack(1)}>-</Button>
-                        <input />
+                        <input onChange={this.handleDefense} value={91 - this.props.points} min={0} max={91} />
                         <Button basic onClick={() => this.addAttack(-1)}>+</Button>
                     </Input>
                 </div>
