@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import Scores from './Scores'
 import Round from './Round'
 import { withRouter } from 'react-router-dom'
+import persistence from '../utils/persistence'
 import update from 'react-addons-update';
 
 import './Game.scss'
@@ -16,73 +17,98 @@ class Game extends React.Component {
         super(props);
         this.state = { loading: true };
         this.roundFinished = this.roundFinished.bind(this);
+        this.onGameUpdate = this.onGameUpdate.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         // Is the current game in the history state?
-        let gameSet = history.currentState;
-        if (gameSet) {
-            this.setGameSet(games);
-        } else {
-            let id = this.props.match.params.id
-            this.setState({loading: true});
-            axios.get(`/${id}/game`).then(response => {
-                this.setGameSet(response.data);
-                
-            }).catch(err => {
-                toast.error(`Pas de jeu ici, verifie l'URL.`)
-            })
+        let id = this.props.match.params.id
+        try {
+            const doc = await persistence().collection('championships').doc(id).get();
+            this.setChampionship(doc);
+        } catch(err) {
+            toast.error(`Pas de jeu ici, verifie l'URL.`)
         }
     }
 
-    setGameSet(gameSet) {
+    async setChampionship(cDoc) {
         // Check the last game and start a new one if old or none
-        let games = gameSet.games;
-        let game = games.length && games[games.length - 1];
-
-        if (!game || game.endedAt || new Date(game.startedAt).getTime() < Date.now() - 86400000) {
+        let championship = cDoc.data();
+        let game;
+        if (championship.currentGame) {
+            let gameDoc = await persistence().doc(`games/${championship.currentGame}`).get();
+            game = gameDoc.data()
+            this.startGame(championship, cDoc.id, game, gameDoc.id);
+        } else {
             // Start new game if none so far, marked as ended or more than a day old
-            game = {
-                startedAt: new Date().toISOString(),
-                rounds: []
-            }
-        }        
-        this.setState({ loading: false, game, gameSet });
+            game = { startedAt: new Date().toISOString(), rounds: [], totals: [] }
+            this.saveCurrentGame(game, championship, cDoc.id);
+        }
     }
 
-    roundFinished(round) {
+    onGameUpdate(doc) {
+        // Update local
+        const game = doc.data();
+        if (game) {
+            console.log("Current data: ", game);
+            this.setState({ game })
+        }
+    }
+
+    startGame(championship, championshipId, game, gameId) {
+        // Start listening to changes
+        persistence().collection('games').doc(gameId)
+            .onSnapshot(this.onGameUpdate);
+        this.setState({ loading: false, game, championship, cId: championshipId, gId: gameId });        
+    }
+
+    async saveCurrentGame(game, championship, championshipId) {
+        try {
+            // Save game
+            let gDocRef = await persistence().collection('games').add(game);
+            const gameId = gDocRef.id;
+            // Keep reference to the game as current
+            await persistence().doc(`championships/${championshipId}`).set({currentGame: gameId}, { merge: true });
+            this.startGame(championship, championshipId, game, gameId);
+        } catch (err) {
+            console.log(err);
+            toast.error('Oops pas pu sauver.')
+        }
+    }
+
+    async roundFinished(round) {
         // Compute the new totals
-        const gameSet = this.state.gameSet;
         const game = this.state.game;
-        let rounds = game.rounds;
-        let pTotals = rounds.length && rounds[rounds.length - 1].totals;
         let scores = round.scores;
-        let newTotals = gameSet.players.reduce((h, p) => {
-            h[p] = (pTotals && pTotals[p] || 0) + (scores[p] || 0);
+
+        let newTotals = this.state.championship.players.reduce((h, p) => {
+            h[p] = (game.totals[p] || 0) + (scores[p] || 0);
             return h;
         }, {});
-        round.totals = newTotals;
 
+        // Save the round
+        let rounds = game.rounds.slice(0);
+        rounds.push(round);
+
+        await persistence().doc(`games/${this.state.gId}`).set({
+            rounds,
+            totals: newTotals
+        }, { merge: true });
+
+        // Update the state
         const newGame = {
             ...game,
-            rounds: [
-                ...rounds.slice(0),
-                round
-            ]
+            totals: newTotals,
+            rounds
         }
 
-        let newGameSet = {
-            ...gameSet,
-            games: [
-                ...gameSet.games.slice(0, gameSet.games.length - 1),
-                newGame
-        ]}
-        axios.put(`/${gameSet.id}`, newGameSet).then(response => {
-            this.setState({ gameSet: newGameSet, game: newGame });
-            this.props.history.push(`/${gameSet.id}/scores`);
-        }).catch(err => {
+        try {
+            this.setState({game: newGame});
+            this.props.history.push(`/${this.state.cId}/scores`);
+        } catch (err) {
+            console.log(err);
             toast.error('Pas pu sauver. Essaie encore.')
-        })
+        }
     }
 
     render() {
@@ -91,15 +117,15 @@ class Game extends React.Component {
                 <img src="/images/loader.apng"/>
             </div>);
         }
-        const id = this.state.gameSet.id;
+        const id = this.state.cId;
         return <div className="game-panel">
             <Toolbar active="scores" id={id} />
             <Switch>
                 <Route exact path={`/${id}/new`}>
-                    <Round current={this.state.game} players={this.state.gameSet.players} onRoundFinish={this.roundFinished}/>
+                    <Round current={this.state.game} players={this.state.championship.players} onRoundFinish={this.roundFinished}/>
                 </Route>
                 <Route exact path={`/${id}/scores`}>
-                    <Scores id={id} current={this.state.game} players={this.state.gameSet.players} />
+                    <Scores id={id} current={this.state.game} players={this.state.championship.players} />
                 </Route>
                 <Route exact path={`/${id}`}>
                     <Redirect to={`/${id}/scores`} />

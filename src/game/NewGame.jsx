@@ -2,8 +2,8 @@ import * as React from 'react'
 import {Modal, Header, Button } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom'
 import Players from './Players'
-import * as axios from 'axios'
 import { toast } from 'react-toastify';
+import firebase from 'firebase'
 
 class NewGame extends React.Component {
 
@@ -28,9 +28,12 @@ class NewGame extends React.Component {
         if (players.length < 3) {
             toast.error('Il nous faut au moins 3 joueurs!');
         } else {
-            axios.post('/new', { players, games: [] }).then(response => {
-                let data = response.data;
-                this.props.history.push(data.id, data);
+            const db = firebase.firestore();
+            const data = { players }
+            db.collection('championships').add({
+                players
+            }).then(docRef => {
+                this.props.history.push(docRef.id, data);
             }).catch(err => {
                 toast.error(`Ca n'a pas marché. Essaie encore.`)
             })
@@ -42,7 +45,7 @@ class NewGame extends React.Component {
             <Header>Qui joue?</Header>
             <Players onChange={this.handlePlayersChange} players={this.state.players}/>
             <div className="push-32">
-                <Button onClick={() => this.props.history.goBack()}>Annuler</Button>
+                <Button onClick={() => this.props.onCancel()}>Annuler</Button>
                 <Button primary onClick={() => this.handleGo()}>C'est Parti</Button>
             </div>
         </div>

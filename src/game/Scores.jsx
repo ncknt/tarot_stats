@@ -11,8 +11,7 @@ class Scores extends React.Component {
     }
 
     render() {
-        const rounds = this.props.current.rounds;
-        const lastRound = rounds.length && rounds[rounds.length -1] || null;
+        const {rounds, totals} = this.props.current;
         const players = this.props.players;
         const cellClass = (player, round) => {
             if (player === round.bidder) {
@@ -53,23 +52,23 @@ class Scores extends React.Component {
                                 {
                                     players.map((p, j) => (<Table.Cell key={j} className={cellClass(p, round)}>{round.scores[p]}</Table.Cell>))
                                 }
-                                <Table.Cell>{round.contract} {round.points - pointsNeeded(round.oudlers)}</Table.Cell>
+                                <Table.Cell>{round.contract} ({round.points - pointsNeeded(round.oudlers)})</Table.Cell>
                             </Table.Row>
                         ))
                     }
                     {
-                        lastRound &&
+                        !!rounds.length &&
                         <Table.Row>
                             <Table.Cell/>
                             {
-                                players.map((p, j) => (<Table.Cell key={j}>{lastRound.totals[p]}</Table.Cell>))
+                                players.map((p, j) => (<Table.Cell key={j}>{totals[p]}</Table.Cell>))
                             }
                         </Table.Row>
                     }
                 </Table.Body>
             </Table>
             {
-                !lastRound && 
+                !rounds.length && 
                 <Container textAlign="center"><Header>Pas encore de partie!</Header></Container>
             }
             <Button circular size="massive" color='google plus' icon='plus' className="newGame" onClick={() => this.props.history.push(`/${this.props.id}/new`)}/>

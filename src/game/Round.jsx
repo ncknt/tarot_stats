@@ -171,7 +171,6 @@ class Round extends React.Component {
             let base = basePoints(contract, points, oudlers, grandChelem);
 
             return <div>
-                <RoundResult onResult={(attackPoints) => this.setState({ points: attackPoints })} points={points || pointsNeeded(2)} />
                 <Grid columns={3} className="push-32">
                     <Grid.Column>
                         <Button basic toggle active={twentyOne} onClick={() => this.setState({ twentyOne: !twentyOne })}>21</Button>
@@ -183,6 +182,7 @@ class Round extends React.Component {
                         <Button basic toggle active={petit} onClick={() => this.setState({ petit: !petit })}>Petit</Button>
                     </Grid.Column>
                 </Grid>
+                <RoundResult className="push-32" onResult={(attackPoints) => this.setState({ points: attackPoints })} points={points || pointsNeeded(2)} />
                 {!!base && 
                     <div className="push-32">
                         Points de base: <span className={`ui basic label ${base > 0 ? 'green' : 'red'}`}>{base}</span>
