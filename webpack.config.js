@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/index.jsx',
+    entry: ['babel-polyfill', './src/index.jsx'],
     devtool: 'inline-source-map',
     resolve: {
         extensions: ['.js', '.jsx']
@@ -64,7 +64,7 @@ module.exports = {
         publicPath: '/',
         proxy: {
             '*': {
-                target: 'http://localhost:8888',
+                target: 'http://localhost:5000',
                 secure: false,
                 changeOrigin: true,
             }

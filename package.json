@@ -19,6 +19,7 @@
   "homepage": "https://github.com/ncknt/tarot_stats#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "firebase": "^4.12.1",
     "react": "^16.3.1",
     "react-addons-update": "^15.6.2",
     "react-dom": "^16.3.1",
@@ -31,6 +32,8 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.4",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.11",
