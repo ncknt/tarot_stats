@@ -22,17 +22,18 @@ class RoundResult extends React.PureComponent {
 
     handleDefense(event) {
         let val = Math.min(Math.max(0, parseInt(event.target.value, 10)), 91);
-        this.props.onResult(val);
+        this.props.onResult(91 - (val || 0));
     }
 
     render() {
+        const attack = isNaN(this.props.points) ? '' : this.props.points;
         return (
             <div className="push-32">
                 Points en attaque:
                 <div>
                     <Input labelPosition='right' type='number' placeholder='Points'>
                         <Button basic onClick={() => this.addAttack(-1)}>-</Button>
-                        <input onChange={this.handleAttack} value={this.props.points} min={0} max={91}/>
+                        <input onChange={this.handleAttack} value={attack} min={0} max={91}/>
                         <Button basic onClick={() => this.addAttack(1)}>+</Button>
                     </Input>
                 </div>
@@ -40,7 +41,7 @@ class RoundResult extends React.PureComponent {
                 <div>
                     <Input labelPosition='right' type='number' placeholder='Points'>
                         <Button basic onClick={() => this.addAttack(1)}>-</Button>
-                        <input onChange={this.handleDefense} value={91 - this.props.points} min={0} max={91} />
+                        <input onChange={this.handleDefense} value={91 - (this.props.points || 0)} min={0} max={91} />
                         <Button basic onClick={() => this.addAttack(-1)}>+</Button>
                     </Input>
                 </div>
