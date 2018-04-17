@@ -5,3 +5,4 @@ png/
 node_modules/
 dist/
 semantic/
+firebase-debug.log
