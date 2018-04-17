@@ -246,7 +246,7 @@ class Round extends React.Component {
                 <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.setState({ playing: true })}>Jouer!</Button></Container>
             }
             { this.state.playing && (!this.state.suitCalled || this.state.sidekick) &&
-                <Container className="push-32" textAlign="center"><Button primary basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
+                <Container className="push-32" textAlign="center"><Button primary disabled={this.props.saving} loading={this.props.saving} basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
             }
         </div>);
     }

@@ -77,6 +77,7 @@ class Game extends React.Component {
     }
 
     async roundFinished(round) {
+        this.setState({saving: true});
         // Compute the new totals
         const game = this.state.game;
         let scores = round.scores;
@@ -103,7 +104,7 @@ class Game extends React.Component {
         }
 
         try {
-            this.setState({game: newGame});
+            this.setState({game: newGame, saving: false});
             this.props.history.push(`/${this.state.cId}/scores`);
         } catch (err) {
             console.log(err);
@@ -122,7 +123,7 @@ class Game extends React.Component {
             <Toolbar active="scores" id={id} />
             <Switch>
                 <Route exact path={`/${id}/new`}>
-                    <Round current={this.state.game} players={this.state.championship.players} onRoundFinish={this.roundFinished}/>
+                    <Round current={this.state.game} players={this.state.championship.players} onRoundFinish={this.roundFinished} saving={this.state.saving}/>
                 </Route>
                 <Route exact path={`/${id}/scores`}>
                     <Scores id={id} current={this.state.game} players={this.state.championship.players} />
