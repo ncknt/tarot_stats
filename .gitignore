@@ -6,3 +6,6 @@ node_modules/
 dist/
 semantic/
 firebase-debug.log
+/public/scripts
+/public/images
+/public/styles

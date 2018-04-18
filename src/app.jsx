@@ -4,7 +4,7 @@ import Game from './game/Game'
 import { ToastContainer } from 'react-toastify'
 import { BrowserRouter, Route, IndexRoute, Switch } from 'react-router-dom'
 
-import 'semantic-ui/dist/semantic.min.css'
+import 'semantic-ui/dist/semantic.css'
 import './App.scss'
 
 

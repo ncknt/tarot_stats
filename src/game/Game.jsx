@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Route, Switch, Redirect } from 'react-router-dom'
 import Toolbar from './Toolbar'
-import * as axios from 'axios'
 import { toast } from 'react-toastify';
 import Scores from './Scores'
 import Round from './Round'
