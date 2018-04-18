@@ -16,6 +16,7 @@ class Round extends React.Component {
         this.skipper = this.skipper.bind(this);
         this.finish = this.finish.bind(this);
         this.play = this.play.bind(this)
+        this.cancel = this.cancel.bind(this)
     }
 
     componentWillMount() {
@@ -240,6 +241,10 @@ class Round extends React.Component {
         this.props.onRoundFinish(round);
     }
 
+    cancel() {
+        this.props.onRoundFinish()        
+    }
+
     summary() {
         const contract = CONTRACTS.find(({val}) => val === this.state.contract).lab;
         return <div className="push-16">
@@ -282,14 +287,21 @@ class Round extends React.Component {
                     </div>
                 }
                 {this.state.playing &&
-                    <div>
+                    <div className="round-result">
                         <Header>Partie en cours</Header>
                         {this.summary()}
                         {this.sidekick()}
                         {this.result()}
-                        {(!this.state.suitCalled || this.state.sidekick && typeof this.state.points === 'number') &&
-                            <Container className="push-32" textAlign="center"><Button primary disabled={this.props.saving} loading={this.props.saving} basic size="big" onClick={() => this.finish()}>Valider</Button></Container>
-                        }
+                        <div className="round-footer">
+                            <Grid columns={2} textAlign="center">
+                                <Grid.Column>
+                                    <Button basic onClick={() => this.cancel()}>Annuler la Partie</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button primary disabled={this.props.saving || typeof this.state.points === 'undefined'} loading={this.props.saving} basic onClick={() => this.finish()}>Valider</Button>
+                                </Grid.Column>
+                            </Grid>
+                        </div>
                     </div>
                 }
             </ReactCSSTransitionGroup>

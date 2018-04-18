@@ -79,12 +79,17 @@ class Game extends React.Component {
     }
 
     roundFinished(round) {
-        this.setState({saving: true});
-        const game = this.state.game;
-        let rounds = game.rounds.slice(0);
-        rounds.push(round);
-        const newGame = { ...game, rounds };
-        return this.updateGameAndTotals(newGame);
+        if (!round) {
+            this.props.history.push(`/${this.state.cId}/scores`);
+
+        } else {
+            this.setState({saving: true});
+            const game = this.state.game;
+            let rounds = game.rounds.slice(0);
+            rounds.push(round);
+            const newGame = { ...game, rounds };
+            return this.updateGameAndTotals(newGame);
+        }
     }
 
     async updateGameAndTotals(game) {
