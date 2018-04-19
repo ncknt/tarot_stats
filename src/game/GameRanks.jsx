@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Card } from 'semantic-ui-react'
+import { Card, Container } from 'semantic-ui-react'
 import { getRank, rankInFrench } from '../utils/text'
 
 class GameRanks extends React.Component {
@@ -19,9 +19,9 @@ class GameRanks extends React.Component {
     render() {
         const {players, game} = this.props;
         const scoreList = players.map(p => ({ points: game.totals[p], player: p}));
-        scoreList.sort((a, b) => (a.points - b.points) || (a.player.localeCompare(b.player)));
+        scoreList.sort((a, b) => (b.points - a.points) || (a.player.localeCompare(b.player)));
 
-        return <div className="push-32">
+        return <Container className="push-32">
             {scoreList.map(({player, points}, idx) => {
                 return <Card key={idx}>
                     <Card.Content header={`${rankInFrench(getRank(player, players, game.totals))} - ${player}`} />
@@ -34,6 +34,8 @@ class GameRanks extends React.Component {
                     </Card.Description>
                 </Card>
             })}
-        </div>
+        </Container>
     }
 }
+
+export default GameRanks;
