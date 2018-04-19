@@ -51,7 +51,7 @@ class Game extends React.Component {
         // Update local
         const game = doc.data();
         if (game) {
-            console.log("Current data: ", game);
+            // console.log("Current data: ", game);
             this.setState({ game })
         }
     }

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     entry: ['babel-polyfill', './src/index.jsx'],
@@ -31,7 +32,12 @@ module.exports = {
         ]
     },
     output: {
-        filename: 'bundle.js',
+        filename: './scripts/bundle.js',
         path: path.resolve(__dirname, 'dist')
-    }
+    },
+    plugins: [
+        new webpack.DefinePlugin({
+            TAROT_CONFIG: JSON.stringify(require("./tarot-config.json"))
+        })
+    ]
 };
