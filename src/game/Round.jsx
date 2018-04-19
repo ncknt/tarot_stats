@@ -3,7 +3,7 @@ import update from 'react-addons-update';
 import { Header, Dropdown, Button, Grid, Rating, Container, Menu, Input } from 'semantic-ui-react'
 import { CONTRACTS, CHIENS, SUITS } from '../utils/constants'
 import RoundResult from './RoundResult'
-import { basePoints, petitAuBout, pointsNeeded, computeScores } from '../utils/rules'
+import { basePoints, petitAuBout, pointsNeeded, computeScores, poignees, poigneeDescription } from '../utils/rules'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import './Round.scss'
@@ -12,7 +12,7 @@ class Round extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { playing: false, skip: [] };
+        this.state = { playing: false, skip: [], poignee: 0 };
         this.skipper = this.skipper.bind(this);
         this.finish = this.finish.bind(this);
         this.play = this.play.bind(this)
@@ -104,8 +104,7 @@ class Round extends React.Component {
     }
 
     withChien() {
-        return this.state.contract &&
-            (this.state.contract !== 'GS' && this.state.contract !== 'GC');
+        return this.state.contract !== 'GS' && this.state.contract !== 'GC';
     }
 
     /**
@@ -113,7 +112,7 @@ class Round extends React.Component {
      */
     leDog() {
         // Ask only if not playing, it's shown and the suit has been called if applicable
-        if (!this.state.playing && this.withChien() && 
+        if (!this.state.playing && this.state.contract && this.withChien() && 
                 (this.state.players.length !== 5 || this.state.suitCalled)) {
             const onRate = (e, { rating, maxRating }) => this.setState({ chien: rating });
             return <div className="push-32">
@@ -129,6 +128,8 @@ class Round extends React.Component {
     annonces() {
         if (this.state.contract && (this.state.chien || !this.withChien()) &&
             (this.state.players.length !== 5 || this.state.suitCalled)) {
+            const poigneeOptions = poignees(this.state.players.length).map(({points, count}, idx) => ({value: idx + 1, text: `${poigneeDescription(idx + 1)} (${count} atouts)`}));
+            poigneeOptions.unshift({value: 0, text: 'Pas de poignee'});
             return <div className="push-32">
                 <Header>Des annonces?</Header>
                 <Grid columns={2}>
@@ -139,10 +140,7 @@ class Round extends React.Component {
                         </div>
                     </Grid.Column>
                     <Grid.Column>
-                        <div className="ui toggle checkbox">
-                            <input type="checkbox" checked={this.state.poignee ? 'true': ''} onChange={() => this.setState({ poignee: !this.state.poignee })} />
-                            <label>Poignee</label>
-                        </div>
+                        <Dropdown options={poigneeOptions} onChange={(e, {value}) => this.setState({poignee: value})} value={this.state.poignee}/>
                     </Grid.Column>
                 </Grid>
             </div>
@@ -232,6 +230,18 @@ class Round extends React.Component {
             // Add the petit au bout scores
             players.forEach(p => {
                 scores[p] += pbScores[p]
+            });
+        }
+        if (this.state.poignee) {
+            let pPoints = poignees(players.length).find((v, idx) => idx === this.state.poignee - 1).points;
+            if (base < 0) {
+                pPoints = -pPoints;
+            }
+            // All points go to the bidder
+            let poigneeScores = computeScores(players, pPoints, bidder, sidekick);
+            // Add scores
+            players.forEach(p => {
+                scores[p] += poigneeScores[p]
             });
         }
         let round = { ...this.state, scores, oudlers, duration: 0};

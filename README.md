@@ -1,6 +1,6 @@
 Another tarot score counter.
 
-[https://tarot-score.firebaseapp.com/|Demo]
+[Demo](https://tarot-score.firebaseapp.com/)
 
 # WIP
 It's a work in progress. I contribute when I have time. It still needs a cleaner UI, stats, and predictions.

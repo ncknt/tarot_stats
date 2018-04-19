@@ -89,3 +89,26 @@ export function computeScores(players, basePoints, bidder, sidekick) {
         return h;
     }, {})
 }
+
+
+export function poignees(playerCount) {
+    switch(playerCount) {
+        case 5:
+            return [{text: 8, points: 20}, {count: 10, points: 30}, {count: 13, points: 40}];
+        case 4:
+            return [{ count: 10, points: 20 }, { count: 13, points: 30 }, { count: 15, points: 40 }];        
+        case 3:
+            return [{ count: 13, points: 20 }, { count: 15, points: 30 }, { count: 18, points: 40 }];        
+    }
+}
+
+export function poigneeDescription(level) {
+    switch(level) {
+        case 1:
+            return 'Simple poignee';
+        case 2:
+            return 'Double poignee';
+        case 3:
+            return 'Triple poignee';
+    }
+}
