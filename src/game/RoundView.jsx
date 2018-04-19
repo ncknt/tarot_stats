@@ -3,6 +3,7 @@ import { Statistic, Table, Grid, Header, Container, Button, Confirm } from 'sema
 import { withRouter } from 'react-router-dom'
 import { CONTRACTS, SUITS } from '../utils/constants'
 import { pointsNeeded, poigneeDescription } from '../utils/rules'
+import { rankInFrench, getRank } from '../utils/text'
 
 class RoundView extends React.Component {
 
@@ -12,16 +13,8 @@ class RoundView extends React.Component {
     }
 
     player(round, players, player, index, intermediateTotals) {
-        // Add 1-based rank
-        let rank = 1;
-        players.forEach(p => {
-            if (p !== player && intermediateTotals[p] > intermediateTotals[player]) {
-                rank++;
-            }
-        });
-
         return <div key={index}>
-            {player} marque {round.scores[player] || 0} points et est {rankInFrench(rank)}.
+            {player} marque {round.scores[player] || 0} points et est {rankInFrench(getRank(player, players, intermediateTotals))}.
         </div>
     }
 
@@ -92,7 +85,7 @@ class RoundView extends React.Component {
                 <div className="push-32">
                     <Grid columns={2} textAlign="center">
                         <Grid.Column>
-                            <Button basic onClick={this.props.history.goBack}>Revenir</Button>
+                            <Button basic onClick={this.props.history.goBack}>Retour</Button>
                         </Grid.Column>
                         <Grid.Column>
                             <Button color="red" onClick={() => this.setState({ open: true })}>Effacer la Partie</Button>
@@ -103,13 +96,5 @@ class RoundView extends React.Component {
         )
     }
 }
-
-function rankInFrench(rank) {
-    if (rank === 1) {
-        return '1er';
-    }
-    return `${rank}eme`;
-}
-
 
 export default withRouter(RoundView)

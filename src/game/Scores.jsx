@@ -3,6 +3,7 @@ import { Table, Button, Header, Container, Icon } from 'semantic-ui-react'
 import { withRouter } from 'react-router-dom'
 import { pointsNeeded } from '../utils/rules'
 import RoundView from './RoundView'
+import GameRanks from './GameRanks'
 import './Scores.scss'
 
 class Scores extends React.Component {
@@ -72,8 +73,9 @@ class Scores extends React.Component {
                 </Table.Body>
             </Table>
             {
-                !rounds.length && 
-                <Container textAlign="center"><Header>Pas encore de partie!</Header></Container>
+                rounds.length ?
+                    <GameRanks players={players} game={this.props.current} /> :
+                    <Container textAlign="center"><Header>Pas encore de partie!</Header></Container>
             }
             <Button circular size="massive" color='google plus' icon='plus' className="newGame" onClick={() => this.props.history.push(`/${this.props.id}/new`)}/>
         </div>
