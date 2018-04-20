@@ -40,20 +40,16 @@ class ScoreLines extends React.PureComponent {
 
         var x = scaleLinear().range([0, width]).domain([0, game.rounds.length]),
             y = scaleLinear().range([height, 0]).domain([min, max]);
-            // z = scaleOrdinal(schemeCategory10);
 
         var _line = line()
             // .curve(curveBasis)
             .x((d, idx) => x(idx))
             .y(y);
 
-        // z.domain(players.map(function (c) { return c.id; }));
-        // z.domain(players);
-
         g.append("g")
             .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + height + ")")
-            .call(axisBottom(x));
+            .attr("transform", "translate(0," + ((height + margin.bottom) / 2)+ ")")
+            .call(axisBottom(x).ticks(0));
 
         g.append("g")
             .attr("class", "axis axis--y")
@@ -74,14 +70,6 @@ class ScoreLines extends React.PureComponent {
             .attr("class", "line")
             .attr("d", d => _line(d.totals))
             .style("stroke", d => d.color);
-
-        // player.append("text")
-        //     .datum(d => { return { id: d.id, value: d.values[d.values.length - 1] }; })
-        //     .attr("transform", function (d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
-        //     .attr("x", 3)
-        //     .attr("dy", "0.35em")
-        //     .style("font", "10px sans-serif")
-        //     .text(function (d) { return d.id; });
     }
 
     render() {
