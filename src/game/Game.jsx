@@ -8,6 +8,7 @@ import RoundView from './RoundView'
 import { withRouter } from 'react-router-dom'
 import persistence from '../utils/persistence'
 import update from 'react-addons-update';
+import GameStats from '../stats/GameStats'
 
 import './Game.scss'
 
@@ -145,6 +146,9 @@ class Game extends React.Component {
                 </Route>
                 <Route exact path={`/${id}/rounds/:rId`}>
                     <RoundView game={this.state.game} players={this.state.championship.players} onRoundDelete={this.deleteRound} saving={this.state.saving} />
+                </Route>
+                <Route exact path={`/${id}/stats`}>
+                    <GameStats game={this.state.game} players={this.state.championship.players} />
                 </Route>
                 <Route exact path={`/${id}`}>
                     <Redirect to={`/${id}/scores`} />

@@ -19,6 +19,7 @@
   "homepage": "https://github.com/ncknt/tarot_stats#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "d3": "^5.1.0",
     "firebase": "^4.12.1",
     "react": "^16.3.1",
     "react-addons-css-transition-group": "^15.6.2",
